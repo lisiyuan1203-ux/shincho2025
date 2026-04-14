@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>新潮文庫の100冊 2025 — 読書イベント</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f2;--surface:#fff;--surface2:#f0ede6;--border:#e0dbd0;--border2:#c5bfb0;
+  --text:#1c1b17;--text2:#6b6860;--text3:#9b9890;
+  --green:#2d5016;--green-l:#eef4e8;--blue:#1a4f8a;--blue-l:#e8f1fb;
+  --gold:#b8860b;--silver:#707070;--bronze:#7a4010;--r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a18;--surface:#242422;--surface2:#2e2e2b;--border:#3a3a36;--border2:#4e4e49;
+  --text:#f0efe9;--text2:#b4b2a9;--text3:#888780;
+  --green:#7ec85a;--green-l:#1a2e10;--blue:#85b7eb;--blue-l:#0c2240;
+}}
+body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.25rem;height:52px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.topbar-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--green-l);color:var(--green);font-weight:500}
+.topbar-sync{margin-left:auto;font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#ccc;flex-shrink:0}
+.sync-dot.ok{background:#5a9e3a}.sync-dot.spin{background:#e0a020;animation:pulse 1s infinite}.sync-dot.err{background:#c0392b}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.nav{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-tab{flex-shrink:0;padding:0 18px;height:42px;font-size:12px;font-weight:500;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;transition:color .15s}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--text)}
+.page{display:none;padding:1.1rem 1rem;max-width:880px;margin:0 auto;width:100%}
+.page.active{display:block}
+.wizard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:1.1rem}
+.wiz-steps{display:flex;border-bottom:1px solid var(--border)}
+.wiz-step{flex:1;padding:10px 4px;text-align:center;font-size:10px;color:var(--text3);border-right:1px solid var(--border);transition:all .2s}
+.wiz-step:last-child{border-right:none}
+.wiz-step.active{background:var(--green-l);color:var(--green);font-weight:500}
+.wiz-step.done{background:var(--surface2);color:var(--text2)}
+.wiz-step .sn{display:block;font-size:14px;font-weight:500;margin-bottom:1px}
+.wiz-body{padding:1.1rem}
+.field-label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+input[type=text],textarea{width:100%;font-size:14px;padding:8px 11px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface);color:var(--text);outline:none;font-family:inherit;transition:border-color .15s}
+input[type=text]:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(45,80,22,.1)}
+textarea{height:80px;resize:vertical;font-size:13px;line-height:1.6}
+.hint{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.5}
+.btn{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 14px;font-size:12px;font-weight:500;border-radius:var(--r);cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text);transition:all .15s;font-family:inherit}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-row{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+.status{font-size:12px;padding:7px 11px;border-radius:var(--r);margin-top:8px;display:none}
+.status.show{display:block}
+.status.ok{background:var(--green-l);color:var(--green)}
+.status.err{background:#fbeaea;color:#8a1a1a}
+.status.info{background:var(--blue-l);color:var(--blue)}
+.prog-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:.8rem 1rem;margin-bottom:1rem}
+.prog-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.prog-lbl{font-size:12px;color:var(--text2)}
+.prog-val{font-size:19px;font-weight:500;color:var(--green)}
+.prog-bar-bg{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.prog-bar-fill{height:6px;background:var(--green);border-radius:3px;transition:width .4s}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:9px}
+.chip{height:22px;padding:0 9px;font-size:11px;font-weight:500;border:1px solid var(--border2);border-radius:11px;cursor:pointer;background:var(--surface);color:var(--text2);font-family:inherit;transition:all .15s}
+.chip.active{background:var(--surface2);color:var(--text);border-color:var(--text)}
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px}
+.bcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;cursor:pointer;display:flex;align-items:flex-start;gap:7px;transition:all .15s;position:relative}
+.bcard:hover{border-color:var(--border2)}
+.read-type-badge{position:absolute;top:5px;right:5px;font-size:9px;padding:1px 5px;border-radius:5px;font-weight:500}
+.bcard.chk-past{background:#f0f9f0;border-color:#a8d5a8}
+.bcard.chk-this{background:#fffbf0;border-color:#e8c840}
+.bcard.chk-reread{background:#f5f0ff;border-color:#c8a8e8}
+.cbox{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:9px;color:#fff;transition:all .15s}
+.bcard.chk-past .cbox{background:#2d7a2d;border-color:#2d7a2d}
+.bcard.chk-this .cbox{background:#c8960a;border-color:#c8960a}
+.bcard.chk-reread .cbox{background:#7040b0;border-color:#7040b0}
+.binfo{flex:1;min-width:0;padding-right:28px}
+.btitle{font-size:11px;font-weight:500;line-height:1.4;color:var(--text)}
+.bauthor{font-size:10px;color:var(--text3);margin-top:1px}
+.rt-selector{display:none;position:absolute;top:100%;left:0;right:0;z-index:20;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.12);padding:6px}
+.rt-selector.open{display:block}
+.rt-opt{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;transition:background .12s}
+.rt-opt:hover{background:var(--surface2)}
+.rt-opt-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;display:inline-block;margin-bottom:1rem}
+.stat-num{font-size:21px;font-weight:500}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:2px}
+.rank-list{display:flex;flex-direction:column;gap:5px}
+.rank-item{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px}
+.rank-medal{font-size:16px;min-width:24px;text-align:center}
+.rank-pos{font-size:12px;font-weight:500;color:var(--text3);min-width:24px;text-align:center}
+.rank-bar-wrap{flex:1;min-width:0}
+.rank-name-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;flex-wrap:wrap;gap:4px}
+.rank-name{font-size:13px;font-weight:500}
+.rank-cnt{font-size:11px;color:var(--text2)}
+.rank-comment{font-size:11px;color:var(--text3);font-style:italic;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-date{font-size:10px;color:var(--text3);margin-bottom:3px}
+.rank-bg{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:3px}
+.rank-fill{height:4px;border-radius:2px}
+.rank-books{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-del{font-size:10px;padding:2px 7px;border:1px solid var(--border2);border-radius:5px;cursor:pointer;background:transparent;color:var(--text3);font-family:inherit;transition:all .15s;flex-shrink:0}
+.rank-del:hover{border-color:#c0392b;color:#c0392b;background:#fbeaea}
+.rt-legend{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.rt-pill{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
+.empty{text-align:center;padding:2rem 1rem;color:var(--text3);font-size:12px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--rl);padding:1.4rem;max-width:380px;width:88%}
+.modal-box h3{font-size:14px;font-weight:500;margin-bottom:8px}
+.modal-box p{font-size:13px;color:var(--text2);margin-bottom:1.1rem;line-height:1.6}
+.preview-box{background:var(--surface2);border-radius:var(--r);padding:10px 12px;margin-bottom:12px}
+.preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.preview-list{font-size:11px;line-height:1.8;max-height:160px;overflow-y:auto}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-logo">📚 新潮文庫の100冊 2025</div>
+    <span class="topbar-badge">共有版</span>
+    <div class="topbar-sync">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">読み込み中...</span>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="nav-tab active" onclick="goTab('register')">📝 既読を登録</button>
+    <button class="nav-tab" onclick="goTab('ranking')">🏆 ランキング</button>
+  </nav>
+
+  <!-- 登録ページ -->
+  <div id="page-register" class="page active">
+    <div class="wizard">
+      <div class="wiz-steps">
+        <div class="wiz-step active" id="ws1"><span class="sn">1</span>表示名</div>
+        <div class="wiz-step" id="ws2"><span class="sn">2</span>既読チェック</div>
+        <div class="wiz-step" id="ws3"><span class="sn">3</span>確認</div>
+        <div class="wiz-step" id="ws4"><span class="sn">4</span>完了</div>
+      </div>
+      <!-- ステップ1 -->
+      <div class="wiz-body" id="sb1">
+        <label class="field-label">表示名を入力してください</label>
+        <input type="text" id="pname" placeholder="例：ゆみ、@yomimeta_user など" autocomplete="off"/>
+        <p class="hint">同じ表示名の再提出は上書きされます。</p>
+        <div class="btn-row"><button class="btn btn-primary" onclick="s1next()">次へ →</button></div>
+        <div class="status" id="s1msg"></div>
+      </div>
+      <!-- ステップ2 -->
+      <div class="wiz-body" id="sb2" style="display:none">
+        <div style="background:var(--surface2);border-radius:var(--r);padding:8px 10px;margin-bottom:9px;font-size:11px;color:var(--text2);line-height:1.6">
+          <strong style="color:var(--text)">読んだ本をクリックして読書状態を選択してください</strong><br>
+          <span style="display:inline-flex;align-items:center;gap:3px;margin-right:8px"><span style="width:8px;height:8px;border-radius:50%;background:#2d7a2d;display:inline-block"></span>過去年度に既読</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;margin-right:8px"><span style="width:8px;height:8px;border-radius:50%;background:#c8960a;display:inline-block"></span>今年既読</span>
+          <span style="display:inline-flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#7040b0;display:inline-block"></span>再読</span>
+        </div>
+        <div class="prog-wrap" style="margin-bottom:.8rem;padding:.6rem .9rem">
+          <div class="prog-row">
+            <span class="prog-lbl">選択中</span>
+            <span class="prog-val"><span id="sel-cnt">0</span><span style="font-size:12px;color:var(--text3)">/100冊</span></span>
+          </div>
+          <div class="prog-bar-bg"><div class="prog-bar-fill" id="sel-bar" style="width:0%"></div></div>
+        </div>
+        <input type="text" id="csearch" placeholder="タイトル・著者で絞り込み..." oninput="renderCL()" style="margin-bottom:9px"/>
+        <div class="chips" id="cl-chips">
+          <button class="chip active" onclick="setCF('all',this)">すべて</button>
+          <button class="chip" onclick="setCF('chk',this)">チェック済み</button>
+          <button class="chip" onclick="setCF('unchk',this)">未チェック</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <button class="btn" style="height:28px;font-size:11px;padding:0 10px" onclick="selectAll()">☑ 全冊を一括選択</button>
+          <button class="btn" style="height:28px;font-size:11px;padding:0 10px;border-color:#c0392b;color:#c0392b" onclick="removeUnread()">✕ 未読を外す</button>
+          <button class="btn" style="height:28px;font-size:11px;padding:0 10px;color:var(--text3)" onclick="clearAll()">全解除</button>
+        </div>
+        <div id="cl-container"></div>
+        <div class="btn-row">
+          <button class="btn" onclick="goStep(1)">← 戻る</button>
+          <button class="btn btn-primary" onclick="s2next()">次へ →</button>
+        </div>
+        <div class="status" id="s2msg"></div>
+      </div>
+      <!-- ステップ3 -->
+      <div class="wiz-body" id="sb3" style="display:none">
+        <div class="preview-box">
+          <div class="preview-head">
+            <span style="font-size:12px;font-weight:500;color:var(--text2)">📋 選択した本を確認</span>
+            <button class="btn" id="copy-btn" onclick="copyPreview()" style="height:26px;font-size:11px;padding:0 9px">コピー</button>
+          </div>
+          <div class="preview-list" id="preview-list"></div>
+        </div>
+        <label class="field-label">一言コメント（任意）</label>
+        <textarea id="pcomment" placeholder="例：今年の夏は百年の孤独に挑戦しました！"></textarea>
+        <p class="hint">ランキングに表示されます。空欄でも登録できます。</p>
+        <div class="btn-row">
+          <button class="btn" onclick="goStep(2)">← 戻る</button>
+          <button class="btn btn-primary" id="submit-btn" onclick="s3submit()">登録する →</button>
+        </div>
+        <div class="status" id="s3msg"></div>
+      </div>
+      <!-- ステップ4 -->
+      <div class="wiz-body" id="sb4" style="display:none;text-align:center;padding:1.8rem 1rem">
+        <div style="font-size:36px;margin-bottom:10px">🎉</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:5px">登録完了！</div>
+        <div id="s4msg" style="font-size:12px;color:var(--text2);margin-bottom:1.1rem"></div>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn" onclick="goRanking()">🏆 ランキングを見る</button>
+          <button class="btn" onclick="resetWiz()">別の名前で登録</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ランキングページ -->
+  <div id="page-ranking" class="page">
+    <div style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-p">—</div>
+        <div class="stat-lbl">参加者数</div>
+      </div>
+    </div>
+    <div class="rt-legend">
+      <span class="rt-pill" style="background:#e8f4e8;color:#2d6e2d">🟢 過去年度に既読</span>
+      <span class="rt-pill" style="background:#fff3cd;color:#856404">🟡 今年既読</span>
+      <span class="rt-pill" style="background:#f0e8ff;color:#5a2d82">🟣 再読</span>
+    </div>
+    <div class="rank-list" id="rank-list"><div class="empty">読み込み中...</div></div>
+  </div>
+</div>
+
+<!-- 上書き確認モーダル -->
+<div class="modal-bg" id="confirm-modal">
+  <div class="modal-box">
+    <h3>⚠️ 上書き確認</h3>
+    <p id="confirm-msg"></p>
+    <div class="btn-row">
+      <button class="btn" onclick="confirmOverwrite(false)">キャンセル</button>
+      <button class="btn btn-primary" onclick="confirmOverwrite(true)">上書きする</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BOOKS=[
+  {id:1,title:"赤毛のアン",author:"モンゴメリ／村岡花子訳"},
+  {id:2,title:"悪女について",author:"有吉佐和子"},
+  {id:3,title:"あつあつを召し上がれ",author:"小川糸"},
+  {id:4,title:"あと少し、もう少し",author:"瀬尾まいこ"},
+  {id:5,title:"アメリカひじき・火垂るの墓",author:"野坂昭如"},
+  {id:6,title:"一汁一菜でよいという提案",author:"土井善晴"},
+  {id:7,title:"いつまで",author:"畠中恵"},
+  {id:8,title:"異邦人",author:"カミュ／窪田啓作訳"},
+  {id:9,title:"インスマスの影",author:"H・P・ラヴクラフト／南條竹則編訳"},
+  {id:10,title:"海辺のカフカ（上）",author:"村上春樹"},
+  {id:11,title:"海辺のカフカ（下）",author:"村上春樹"},
+  {id:12,title:"江戸川乱歩名作選",author:"江戸川乱歩"},
+  {id:13,title:"オーデュボンの祈り",author:"伊坂幸太郎"},
+  {id:14,title:"オズの魔法使い",author:"ボーム／河野万里子訳"},
+  {id:15,title:"か「」く「」し「」ご「」と「",author:"住野よる"},
+  {id:16,title:"風が強く吹いている",author:"三浦しをん"},
+  {id:17,title:"蟹工船・党生活者",author:"小林多喜二"},
+  {id:18,title:"木",author:"幸田文"},
+  {id:19,title:"キッチン",author:"吉本ばなな"},
+  {id:20,title:"きみの友だち",author:"重松清"},
+  {id:21,title:"ぎょらん",author:"町田そのこ"},
+  {id:22,title:"きらきらひかる",author:"江國香織"},
+  {id:23,title:"金閣寺",author:"三島由紀夫"},
+  {id:24,title:"新編 銀河鉄道の夜",author:"宮沢賢治"},
+  {id:25,title:"蜘蛛の糸・杜子春",author:"芥川龍之介"},
+  {id:26,title:"黒い雨",author:"井伏鱒二"},
+  {id:27,title:"小泉八雲集",author:"小泉八雲／上田和夫訳"},
+  {id:28,title:"工場",author:"小山田浩子"},
+  {id:29,title:"こころ",author:"夏目漱石"},
+  {id:30,title:"こころの処方箋",author:"河合隼雄"},
+  {id:31,title:"答えは風のなか",author:"重松清"},
+  {id:32,title:"狐笛のかなた",author:"上橋菜穂子"},
+  {id:33,title:"この世にたやすい仕事はない",author:"津村記久子"},
+  {id:34,title:"最後の秘境 東京藝大",author:"二宮敦人"},
+  {id:35,title:"財布は踊る",author:"原田ひ香"},
+  {id:36,title:"さがしもの",author:"角田光代"},
+  {id:37,title:"さくらえび",author:"さくらももこ"},
+  {id:38,title:"残穢",author:"小野不由美"},
+  {id:39,title:"塩狩峠",author:"三浦綾子"},
+  {id:40,title:"自転しながら公転する",author:"山本文緒"},
+  {id:41,title:"シャーロック・ホームズの冒険",author:"コナン・ドイル／延原謙訳"},
+  {id:42,title:"しゃばけ",author:"畠中恵"},
+  {id:43,title:"車輪の下",author:"ヘッセ／高橋健二訳"},
+  {id:44,title:"春琴抄",author:"谷崎潤一郎"},
+  {id:45,title:"常設展示室",author:"原田マハ"},
+  {id:46,title:"しろがねの葉",author:"千早茜"},
+  {id:47,title:"深夜特急1 香港・マカオ",author:"沢木耕太郎"},
+  {id:48,title:"砂の女",author:"安部公房"},
+  {id:49,title:"正欲",author:"朝井リョウ"},
+  {id:50,title:"世界でいちばん透きとおった物語",author:"杉井光"},
+  {id:51,title:"絶唱",author:"湊かなえ"},
+  {id:52,title:"センス・オブ・ワンダー",author:"レイチェル・カーソン／上遠恵子訳"},
+  {id:53,title:"それでも、日本人は「戦争」を選んだ",author:"加藤陽子"},
+  {id:54,title:"太陽の塔",author:"森見登美彦"},
+  {id:55,title:"堕落論",author:"坂口安吾"},
+  {id:56,title:"地球星人",author:"村田沙耶香"},
+  {id:57,title:"注文の多い料理店",author:"宮沢賢治"},
+  {id:58,title:"沈黙",author:"遠藤周作"},
+  {id:59,title:"月と六ペンス",author:"サマセット・モーム／金原瑞人訳"},
+  {id:60,title:"月まで三キロ",author:"伊与原新"},
+  {id:61,title:"ツナグ",author:"辻村深月"},
+  {id:62,title:"罪と罰（上）",author:"ドストエフスキー／工藤精一郎訳"},
+  {id:63,title:"罪と罰（下）",author:"ドストエフスキー／工藤精一郎訳"},
+  {id:64,title:"遠野物語",author:"柳田国男"},
+  {id:65,title:"中原中也詩集",author:"中原中也"},
+  {id:66,title:"夏の庭",author:"湯本香樹実"},
+  {id:67,title:"成瀬は天下を取りにいく",author:"宮島未奈"},
+  {id:68,title:"西の魔女が死んだ",author:"梨木香歩"},
+  {id:69,title:"日日是好日",author:"森下典子"},
+  {id:70,title:"人間失格",author:"太宰治"},
+  {id:71,title:"博士の愛した数式",author:"小川洋子"},
+  {id:72,title:"儚い羊たちの祝宴",author:"米澤穂信"},
+  {id:73,title:"BUTTER",author:"柚木麻子"},
+  {id:74,title:"母の待つ里",author:"浅田次郎"},
+  {id:75,title:"ハムレット",author:"シェイクスピア／福田恆存訳"},
+  {id:76,title:"ひとり暮らし",author:"谷川俊太郎"},
+  {id:77,title:"火のないところに煙は",author:"芦沢央"},
+  {id:78,title:"暇と退屈の倫理学",author:"國分功一郎"},
+  {id:79,title:"向日葵の咲かない夏",author:"道尾秀介"},
+  {id:80,title:"百年の孤独",author:"ガルシア＝マルケス／鼓直訳"},
+  {id:81,title:"フェルマーの最終定理",author:"サイモン・シン／青木薫訳"},
+  {id:82,title:"梟の城",author:"司馬遼太郎"},
+  {id:83,title:"変身",author:"フランツ・カフカ／高橋義孝訳"},
+  {id:84,title:"ぼくはイエローでホワイトで、ちょっとブルー",author:"ブレイディみかこ"},
+  {id:85,title:"ぼくは勉強ができない",author:"山田詠美"},
+  {id:86,title:"星の王子さま",author:"サン＝テグジュペリ／河野万里子訳"},
+  {id:87,title:"ボッコちゃん",author:"星新一"},
+  {id:88,title:"魔術はささやく",author:"宮部みゆき"},
+  {id:89,title:"幻の光",author:"宮本輝"},
+  {id:90,title:"マリコ、うまくいくよ",author:"益田ミリ"},
+  {id:91,title:"ミッキーマウスの憂鬱",author:"松岡圭祐"},
+  {id:92,title:"雪国",author:"川端康成"},
+  {id:93,title:"ようこそ地球さん",author:"星新一"},
+  {id:94,title:"夜が明ける",author:"西加奈子"},
+  {id:95,title:"夜のピクニック",author:"恩田陸"},
+  {id:96,title:"ルビンの壺が割れた",author:"宿野かほる"},
+  {id:97,title:"檸檬",author:"梶井基次郎"},
+  {id:98,title:"老人と海",author:"ヘミングウェイ／高見浩訳"},
+  {id:99,title:"ロリータ",author:"ウラジーミル・ナボコフ／若島正訳"},
+  {id:100,title:"吾輩も猫である",author:"赤川次郎ほか"},
+];
+
+const RT={
+  past:{label:"過去年度",color:"#2d7a2d",bg:"#e8f4e8",cboxTxt:"過"},
+  this:{label:"今年",color:"#c8960a",bg:"#fffbf0",cboxTxt:"今"},
+  reread:{label:"再読",color:"#7040b0",bg:"#f5f0ff",cboxTxt:"再"}
+};
+
+// ── 状態 ──
+let participants={};
+let wizSel={};
+let cfMode='all';
+let pendingOverwrite=null;
+let activePopup=null;
+
+const SHEETDB_URL="https://sheetdb.io/api/v1/swofyr4mf8p17";
+
+function setSyncUI(st,lbl){
+  document.getElementById("sync-dot").className="sync-dot "+st;
+  document.getElementById("sync-label").textContent=lbl;
+}
+
+async function loadShared(){
+  setSyncUI("spin","読み込み中...");
+  try{
+    const r=await fetch(SHEETDB_URL);
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    const rows=await r.json();
+    // SheetDBは行の配列を返す。1行目のdataカラムにJSONを保存
+    const row=Array.isArray(rows)&&rows.length>0?rows[0]:null;
+    const json=row&&row.data?row.data:"{}";
+    const data=JSON.parse(json);
+    if(data&&Object.keys(data).length>0){
+      participants=data;
+      renderRanking();
+    }
+    setSyncUI("ok","同期済み");
+    return participants;
+  }catch(e){
+    console.error("loadShared:",e);
+    setSyncUI("err","読み込みエラー");
+    return participants;
+  }
+}
+
+async function saveShared(data){
+  setSyncUI("spin","保存中...");
+  participants=data;
+  renderRanking();
+  const json=JSON.stringify(data);
+  try{
+    // まず既存データがあるか確認
+    const r=await fetch(SHEETDB_URL);
+    const rows=await r.json();
+    if(Array.isArray(rows)&&rows.length>0){
+      // 既存行を更新（PUT）
+      await fetch(SHEETDB_URL+"/all",{
+        method:"PUT",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({data:{data:json}})
+      });
+    }else{
+      // 新規行を追加（POST）
+      await fetch(SHEETDB_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({data:[{data:json}]})
+      });
+    }
+    setSyncUI("ok","保存完了");
+  }catch(e){
+    console.error("saveShared:",e);
+    setSyncUI("err","保存失敗");
+  }
+}
+
+// ── タブ切替 ──
+function goTab(name){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById("page-"+name).classList.add("active");
+  const tabs=document.querySelectorAll(".nav-tab");
+  tabs[name==="register"?0:1].classList.add("active");
+  if(name==="ranking") renderRanking();
+}
+
+function goRanking(){
+  // 登録直後はGASから再読み込みせず手元のデータでランキング表示
+  goTab("ranking");
+}
+
+// ── ウィザード ──
+function goStep(n){
+  [1,2,3,4].forEach(i=>{
+    document.getElementById("ws"+i).className="wiz-step"+(i===n?" active":i<n?" done":"");
+    document.getElementById("sb"+i).style.display=i===n?"block":"none";
+  });
+  if(n===2)renderCL();
+  if(n===3)renderPreview();
+}
+
+async function s1next(){
+  const name=document.getElementById("pname").value.trim();
+  const msg=document.getElementById("s1msg");
+  if(!name){showMsg(msg,"err","表示名を入力してください");return;}
+  hideMsg(msg);
+  const current=await loadShared();
+  if(participants[name]){
+    document.getElementById("confirm-msg").textContent=
+      `「${name}」はすでに登録されています（${Object.keys(participants[name].books||{}).length}冊）。上書きしますか？`;
+    pendingOverwrite=name;
+    document.getElementById("confirm-modal").classList.add("open");
+  }else{
+    wizSel={};goStep(2);
+  }
+}
+
+function confirmOverwrite(yes){
+  document.getElementById("confirm-modal").classList.remove("open");
+  if(!yes){pendingOverwrite=null;return;}
+  const ex=participants[pendingOverwrite];
+  wizSel=ex&&ex.books?{...ex.books}:{};
+  if(ex&&ex.comment)document.getElementById("pcomment").value=ex.comment;
+  pendingOverwrite=null;
+  goStep(2);
+}
+
+function s2next(){
+  const msg=document.getElementById("s2msg");
+  if(!Object.keys(wizSel).length){showMsg(msg,"err","少なくとも1冊選択してください");return;}
+  hideMsg(msg);goStep(3);
+}
+
+async function s3submit(){
+  const name=document.getElementById("pname").value.trim();
+  const comment=document.getElementById("pcomment").value.trim();
+  const msg=document.getElementById("s3msg");
+  const btn=document.getElementById("submit-btn");
+  btn.disabled=true;
+  showMsg(msg,"info","登録中...");
+  const next={...participants,[name]:{books:wizSel,comment,at:new Date().toLocaleString("ja-JP")}};
+  await saveShared(next);
+  btn.disabled=false;
+  hideMsg(msg);
+  document.getElementById("s4msg").textContent=`${name} さんの既読リストを登録しました（${Object.keys(wizSel).length}冊）`;
+  goStep(4);
+}
+
+function resetWiz(){
+  document.getElementById("pname").value="";
+  document.getElementById("pcomment").value="";
+  wizSel={};
+  hideMsg(document.getElementById("s1msg"));
+  hideMsg(document.getElementById("s2msg"));
+  goStep(1);
+}
+
+// ── チェックリスト ──
+function setCF(m,btn){
+  cfMode=m;
+  document.querySelectorAll("#cl-chips .chip").forEach(c=>c.classList.remove("active"));
+  btn.classList.add("active");
+  renderCL();
+}
+
+function renderCL(){
+  const q=(document.getElementById("csearch")?.value||"").toLowerCase();
+  const cnt=Object.keys(wizSel).length;
+  document.getElementById("sel-cnt").textContent=cnt;
+  document.getElementById("sel-bar").style.width=Math.round(cnt/100*100)+"%";
+  const books=BOOKS.filter(b=>{
+    if(q&&!b.title.toLowerCase().includes(q)&&!b.author.toLowerCase().includes(q))return false;
+    if(cfMode==="chk")return !!wizSel[b.id];
+    if(cfMode==="unchk")return !wizSel[b.id];
+    return true;
+  });
+  const con=document.getElementById("cl-container");
+  if(!books.length){con.innerHTML='<div class="empty">該当なし</div>';return;}
+  con.innerHTML='<div class="book-grid">'+books.map(b=>{
+    const rt=wizSel[b.id];const rto=rt?RT[rt]:null;
+    const cls=rto?(rt==="past"?" chk-past":rt==="this"?" chk-this":" chk-reread"):"";
+    return `<div class="bcard${cls}" onclick="openPopup(event,${b.id})">
+      <div class="cbox">${rto?`<span style="font-size:8px;color:#fff">${rto.cboxTxt}</span>`:""}</div>
+      <div class="binfo">
+        <div class="btitle">${b.title}</div>
+        <div class="bauthor">${b.author}</div>
+      </div>
+      ${rto?`<span class="read-type-badge" style="background:${rto.bg};color:${rto.color}">${rto.label}</span>`:""}
+      <div class="rt-selector" id="rtp-${b.id}" onclick="event.stopPropagation()">
+        ${Object.entries(RT).map(([k,v])=>`<div class="rt-opt" onclick="selectRt(${b.id},'${k}')">
+          <span class="rt-opt-dot" style="background:${v.color}"></span>${v.label}</div>`).join("")}
+        ${rto?`<div class="rt-opt" style="border-top:1px solid var(--border);margin-top:3px;padding-top:6px" onclick="selectRt(${b.id},null)">
+          <span class="rt-opt-dot" style="background:var(--border2)"></span>チェックを外す</div>`:""}
+      </div>
+    </div>`;
+  }).join("")+"</div>";
+}
+
+function openPopup(e,id){
+  e.stopPropagation();
+  const popup=document.getElementById("rtp-"+id);
+  if(activePopup&&activePopup!==popup)activePopup.classList.remove("open");
+  popup.classList.toggle("open");
+  activePopup=popup.classList.contains("open")?popup:null;
+}
+document.addEventListener("click",()=>{if(activePopup){activePopup.classList.remove("open");activePopup=null;}});
+
+function selectRt(id,type){
+  if(type===null)delete wizSel[id];else wizSel[id]=type;
+  if(activePopup){activePopup.classList.remove("open");activePopup=null;}
+  renderCL();
+}
+
+function selectAll(){
+  BOOKS.forEach(b=>{if(!wizSel[b.id])wizSel[b.id]="past";});
+  renderCL();
+  const msg=document.getElementById("s2msg");
+  showMsg(msg,"info","全"+BOOKS.length+"冊を選択しました。未読の本を外してください。");
+  setTimeout(()=>hideMsg(msg),5000);
+}
+
+function removeUnread(){
+  const q=(document.getElementById("csearch")?.value||"").toLowerCase();
+  const toRemove=BOOKS.filter(b=>{
+    if(q&&!b.title.toLowerCase().includes(q)&&!b.author.toLowerCase().includes(q))return false;
+    return !!wizSel[b.id];
+  });
+  const msg=document.getElementById("s2msg");
+  if(!toRemove.length){showMsg(msg,"err","外せる本がありません");setTimeout(()=>hideMsg(msg),3000);return;}
+  toRemove.forEach(b=>delete wizSel[b.id]);
+  renderCL();
+  showMsg(msg,"info",toRemove.length+"冊を外しました。残り"+Object.keys(wizSel).length+"冊選択中。");
+  setTimeout(()=>hideMsg(msg),4000);
+}
+
+function clearAll(){wizSel={};renderCL();}
+
+// ── プレビュー ──
+function renderPreview(){
+  const byType={past:[],this:[],reread:[]};
+  Object.keys(wizSel).forEach(id=>{const t=wizSel[id];if(byType[t])byType[t].push(id);});
+  let html="";
+  Object.entries(byType).forEach(([k,arr])=>{
+    if(!arr.length)return;
+    const rv=RT[k];
+    html+=`<div style="margin-bottom:6px"><span style="font-size:10px;padding:1px 7px;border-radius:8px;font-weight:500;background:${rv.bg};color:${rv.color}">${rv.label}（${arr.length}冊）</span></div>`;
+    arr.forEach(id=>{
+      const b=BOOKS.find(x=>x.id==id);
+      if(b)html+=`<div style="padding-left:6px;border-left:2px solid ${rv.color};margin-bottom:2px">・${b.title}　<span style="color:var(--text3)">${b.author}</span></div>`;
+    });
+  });
+  document.getElementById("preview-list").innerHTML=html||"<span style='color:var(--text3)'>選択なし</span>";
+}
+
+function copyPreview(){
+  const ids=Object.keys(wizSel);
+  const name=document.getElementById("pname").value.trim()||"—";
+  let txt=`【新潮文庫の100冊 2025 — 読書記録】\n表示名: ${name}\n合計: ${ids.length}/100冊\n\n`;
+  const byType={past:[],this:[],reread:[]};
+  ids.forEach(id=>{const t=wizSel[id];if(byType[t])byType[t].push(id);});
+  Object.entries(byType).forEach(([k,arr])=>{
+    if(!arr.length)return;
+    txt+=`▼ ${RT[k].label}（${arr.length}冊）\n`;
+    arr.forEach(id=>{const b=BOOKS.find(x=>x.id==id);if(b)txt+=`  ・${b.title}　${b.author}\n`;});
+    txt+="\n";
+  });
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById("copy-btn");
+    btn.textContent="コピー完了！";setTimeout(()=>btn.textContent="コピー",2000);
+  });
+}
+
+// ── ランキング ──
+function renderRanking(){
+  const entries=Object.entries(participants)
+    .map(([name,d])=>({name,count:d.books?Object.keys(d.books).length:0,books:d.books||{},comment:d.comment||"",at:d.at||""}))
+    .sort((a,b)=>b.count-a.count);
+  document.getElementById("stat-p").textContent=entries.length;
+  const list=document.getElementById("rank-list");
+  if(!entries.length){list.innerHTML='<div class="empty">まだ参加者がいません。</div>';return;}
+  const max=entries[0].count||1;
+  const medals=["🥇","🥈","🥉"];
+  list.innerHTML=entries.map((e,i)=>{
+    const pos=i+1;
+    const pct=Math.round(e.count/max*100);
+    const fillColor=pos===1?"var(--gold)":pos===2?"var(--silver)":pos===3?"var(--bronze)":"var(--green)";
+    const ids=Object.keys(e.books);
+    const titles=ids.map(id=>BOOKS.find(x=>x.id==id)?.title).filter(Boolean);
+    const prev=titles.slice(0,3).join("、")+(titles.length>3?`…他${titles.length-3}冊`:"");
+    const byType={past:0,this:0,reread:0};
+    Object.values(e.books).forEach(t=>{if(byType[t]!==undefined)byType[t]++;});
+    const typeStr=Object.entries(byType).filter(([,v])=>v>0)
+      .map(([k,v])=>`<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:${RT[k].bg};color:${RT[k].color};font-weight:500;margin-left:2px">${RT[k].label}:${v}</span>`).join("");
+    return `<div class="rank-item">
+      ${pos<=3?`<div class="rank-medal">${medals[pos-1]}</div>`:`<div class="rank-pos">${pos}</div>`}
+      <div class="rank-bar-wrap">
+        <div class="rank-name-row"><span class="rank-name">${e.name}</span><span class="rank-cnt">${e.count}冊　${typeStr}</span></div>
+        ${e.comment?`<div class="rank-comment">💬 ${e.comment}</div>`:""}
+        ${e.at?`<div class="rank-date">🕐 ${e.at}</div>`:""}
+        <div class="rank-bg"><div class="rank-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+        <div class="rank-books">${prev||"—"}</div>
+      </div>
+      <button class="rank-del" onclick="deleteEntry('${e.name.replace(/'/g,"\\'")}')">削除</button>
+    </div>`;
+  }).join("");
+}
+
+async function deleteEntry(name){
+  if(!confirm(`「${name}」の登録を削除しますか？`))return;
+  const next={...participants};delete next[name];
+  await saveShared(next);
+}
+
+// ── ユーティリティ ──
+function showMsg(el,type,text){el.className="status show "+type;el.textContent=text;}
+function hideMsg(el){el.className="status";}
+
+// ── 初期化 ──
+loadShared();
+</script>
+</body>
+</html>
